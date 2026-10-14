@@ -1,0 +1,118 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "6631a43daa514265d70bc99fd12973f1",
+    "entities": [
+      {
+        "tableName": "transacciones",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `concepto` TEXT NOT NULL, `monto` REAL NOT NULL, `tipo` TEXT NOT NULL, `categoria` TEXT NOT NULL, `fecha` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "concepto",
+            "columnName": "concepto",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "monto",
+            "columnName": "monto",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipo",
+            "columnName": "tipo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoria",
+            "columnName": "categoria",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fecha",
+            "columnName": "fecha",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_transacciones_fecha",
+            "unique": false,
+            "columnNames": [
+              "fecha"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_transacciones_fecha` ON `${TABLE_NAME}` (`fecha`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "metas_ahorro",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nombre` TEXT NOT NULL, `montoObjetivo` REAL NOT NULL, `montoActual` REAL NOT NULL, `icono` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "montoObjetivo",
+            "columnName": "montoObjetivo",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "montoActual",
+            "columnName": "montoActual",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "icono",
+            "columnName": "icono",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6631a43daa514265d70bc99fd12973f1')"
+    ]
+  }
+}
