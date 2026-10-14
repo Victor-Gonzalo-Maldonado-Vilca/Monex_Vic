@@ -1,1 +1,1 @@
-# Reglas ProGuard del proyecto AhorraApp.
+# Reglas ProGuard del proyecto MonexVic.

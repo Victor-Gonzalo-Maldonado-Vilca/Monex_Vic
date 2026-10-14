@@ -2,7 +2,7 @@ package com.monexvic.ahorraapp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta principal de AhorraApp
+// Paleta principal de MonexVic
 val Purpura = Color(0xFF6329C3)          // Primario: tarjetas destacadas y elementos clave
 val Menta = Color(0xFF63BAAA)            // Acento: ingresos, ahorros y barras de progreso
 val PurpuraApagado = Color(0xFF9078AA)   // Contenedor secundario: cards secundarias

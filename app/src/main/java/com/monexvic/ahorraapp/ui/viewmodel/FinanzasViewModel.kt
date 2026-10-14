@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.AP
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.monexvic.ahorraapp.AhorraApplication
+import com.monexvic.ahorraapp.MonexVicApplication
 import com.monexvic.ahorraapp.data.local.MetaAhorro
 import com.monexvic.ahorraapp.data.local.TipoTransaccion
 import com.monexvic.ahorraapp.data.local.Transaccion
@@ -133,7 +133,7 @@ class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel(
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val app = this[APPLICATION_KEY] as AhorraApplication
+                val app = this[APPLICATION_KEY] as MonexVicApplication
                 FinanzasViewModel(app.repository)
             }
         }

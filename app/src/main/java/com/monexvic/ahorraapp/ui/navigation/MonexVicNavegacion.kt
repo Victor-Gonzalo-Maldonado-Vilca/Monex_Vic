@@ -50,7 +50,7 @@ enum class Destino(val ruta: String, val etiqueta: String, val icono: ImageVecto
 
 /** Raíz de la UI: fondo degradado, barra de navegación inferior y NavHost con las 4 pestañas. */
 @Composable
-fun AhorraAppRaiz(viewModel: FinanzasViewModel = viewModel(factory = FinanzasViewModel.Factory)) {
+fun MonexVicRaiz(viewModel: FinanzasViewModel = viewModel(factory = FinanzasViewModel.Factory)) {
     val navController = rememberNavController()
 
     Box(

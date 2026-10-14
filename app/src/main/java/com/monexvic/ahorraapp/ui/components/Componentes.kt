@@ -41,7 +41,7 @@ import com.monexvic.ahorraapp.ui.theme.Purpura
 import com.monexvic.ahorraapp.ui.theme.PurpuraOscuro
 import com.monexvic.ahorraapp.ui.theme.PurpuraTexto
 
-/** Barra superior con el logo "AhorraApp" y la campana de notificaciones. */
+/** Barra superior con el logo "MonexVic" y la campana de notificaciones. */
 @Composable
 fun EncabezadoApp(modifier: Modifier = Modifier) {
     Row(
@@ -52,8 +52,8 @@ fun EncabezadoApp(modifier: Modifier = Modifier) {
     ) {
         Text(
             text = buildAnnotatedString {
-                withStyle(SpanStyle(color = PurpuraOscuro)) { append("Ahorra") }
-                withStyle(SpanStyle(color = Purpura)) { append("App") }
+                withStyle(SpanStyle(color = PurpuraOscuro)) { append("Monex") }
+                withStyle(SpanStyle(color = Purpura)) { append("Vic") }
             },
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,

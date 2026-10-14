@@ -5,7 +5,7 @@ import com.monexvic.ahorraapp.data.local.AppDatabase
 import com.monexvic.ahorraapp.data.repository.FinanzasRepository
 
 /** Contenedor de dependencias manual (sin framework de DI). */
-class AhorraApplication : Application() {
+class MonexVicApplication : Application() {
 
     private val database by lazy { AppDatabase.obtener(this) }
 

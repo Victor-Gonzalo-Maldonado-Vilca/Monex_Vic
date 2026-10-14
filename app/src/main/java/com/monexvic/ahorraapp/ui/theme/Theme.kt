@@ -5,7 +5,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Brush
 
-private val AhorraColorScheme = lightColorScheme(
+private val MonexVicColorScheme = lightColorScheme(
     primary = Purpura,
     onPrimary = Blanco,
     primaryContainer = Lavanda,
@@ -33,14 +33,14 @@ private val AhorraColorScheme = lightColorScheme(
 val FondoPantalla = Brush.verticalGradient(listOf(Lavanda, FondoGeneral))
 
 /**
- * Tema de AhorraApp. Se usa siempre el esquema de marca (sin colores dinámicos)
+ * Tema de MonexVic. Se usa siempre el esquema de marca (sin colores dinámicos)
  * para respetar la identidad visual del diseño.
  */
 @Composable
-fun AhorraAppTheme(content: @Composable () -> Unit) {
+fun MonexVicTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = AhorraColorScheme,
-        typography = AhorraTypography,
+        colorScheme = MonexVicColorScheme,
+        typography = MonexVicTypography,
         content = content,
     )
 }

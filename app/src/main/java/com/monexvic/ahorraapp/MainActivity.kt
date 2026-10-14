@@ -6,8 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.monexvic.ahorraapp.ui.navigation.AhorraAppRaiz
-import com.monexvic.ahorraapp.ui.theme.AhorraAppTheme
+import com.monexvic.ahorraapp.ui.navigation.MonexVicRaiz
+import com.monexvic.ahorraapp.ui.theme.MonexVicTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,8 +18,8 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
         setContent {
-            AhorraAppTheme {
-                AhorraAppRaiz()
+            MonexVicTheme {
+                MonexVicRaiz()
             }
         }
     }
