@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Moneda menta con una ranura de alcancía -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#63BAAA"
+        android:pathData="M54,30a24,24 0,1 1,0 48a24,24 0,1 1,0 -48z" />
+    <path
+        android:fillColor="#FCEAFF"
+        android:pathData="M54,36a18,18 0,1 1,0 36a18,18 0,1 1,0 -36z" />
+    <path
+        android:fillColor="#6329C3"
+        android:pathData="M51,42h6v24h-6z" />
+    <path
+        android:fillColor="#6329C3"
+        android:pathData="M44,51h20v6h-20z" />
+</vector>
