@@ -1,0 +1,141 @@
+package com.monexvic.app.ui.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.monexvic.app.MonexVicApplication
+import com.monexvic.app.data.local.MetaAhorro
+import com.monexvic.app.data.local.TipoTransaccion
+import com.monexvic.app.data.local.Transaccion
+import com.monexvic.app.data.repository.FinanzasRepository
+import com.monexvic.app.domain.CalculosFinanzas
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import java.time.YearMonth
+
+class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel() {
+
+    private val compartir = SharingStarted.WhileSubscribed(5_000)
+
+    private val transacciones: StateFlow<List<Transaccion>> =
+        repository.transacciones.stateIn(viewModelScope, compartir, emptyList())
+
+    // ---------- Inicio ----------
+    val inicioState: StateFlow<InicioUiState> = transacciones
+        .map { lista ->
+            val mes = CalculosFinanzas.resumenDelMes(lista, YearMonth.now())
+            InicioUiState(
+                balance = CalculosFinanzas.balance(lista),
+                ahorradoMes = mes.ahorro,
+                gastadoMes = mes.gastos,
+                ultimosMovimientos = lista.take(5),
+            )
+        }
+        .stateIn(viewModelScope, compartir, InicioUiState())
+
+    // ---------- Movimientos ----------
+    private val busqueda = MutableStateFlow("")
+    private val filtro = MutableStateFlow(FiltroMovimiento.TODOS)
+
+    val movimientosState: StateFlow<MovimientosUiState> =
+        combine(transacciones, busqueda, filtro) { lista, texto, filtroActual ->
+            val filtradas = lista
+                .filter {
+                    when (filtroActual) {
+                        FiltroMovimiento.TODOS -> true
+                        FiltroMovimiento.AHORROS -> it.tipo == TipoTransaccion.AHORRO
+                        FiltroMovimiento.GASTOS -> it.tipo == TipoTransaccion.GASTO
+                    }
+                }
+                .filter { texto.isBlank() || it.concepto.contains(texto.trim(), ignoreCase = true) }
+            MovimientosUiState(
+                busqueda = texto,
+                filtro = filtroActual,
+                grupos = filtradas
+                    .groupBy { CalculosFinanzas.fechaDe(it.fecha) }
+                    .map { (fecha, movs) -> GrupoMovimientos(fecha, movs) },
+            )
+        }.stateIn(viewModelScope, compartir, MovimientosUiState())
+
+    fun onBusquedaChange(texto: String) {
+        busqueda.value = texto
+    }
+
+    fun onFiltroChange(nuevo: FiltroMovimiento) {
+        filtro.value = nuevo
+    }
+
+    // ---------- Metas ----------
+    val metasState: StateFlow<MetasUiState> = repository.metas
+        .map { metas -> MetasUiState(metas, metas.sumOf { it.montoActual }) }
+        .stateIn(viewModelScope, compartir, MetasUiState())
+
+    // ---------- Estadísticas ----------
+    val estadisticasState: StateFlow<EstadisticasUiState> = transacciones
+        .map { lista ->
+            val mesActual = YearMonth.now()
+            val resumen = CalculosFinanzas.resumenDelMes(lista, mesActual)
+            EstadisticasUiState(
+                gastosPorCategoria = CalculosFinanzas.gastosPorCategoria(lista, mesActual),
+                ultimosMeses = CalculosFinanzas.ultimosMeses(lista, mesActual),
+                ingresosMes = resumen.ingresos,
+                gastosMes = resumen.gastos,
+                porcentajeAhorro = CalculosFinanzas.porcentajeAhorro(resumen.ingresos, resumen.gastos),
+            )
+        }
+        .stateIn(viewModelScope, compartir, EstadisticasUiState())
+
+    // ---------- Acciones ----------
+    fun agregarTransaccion(concepto: String, monto: Double, tipo: TipoTransaccion, categoria: String) {
+        if (concepto.isBlank() || monto <= 0.0) return
+        viewModelScope.launch {
+            repository.agregarTransaccion(
+                Transaccion(
+                    concepto = concepto.trim(),
+                    monto = monto,
+                    tipo = tipo,
+                    categoria = categoria,
+                    fecha = System.currentTimeMillis(),
+                )
+            )
+        }
+    }
+
+    fun eliminarTransaccion(transaccion: Transaccion) {
+        viewModelScope.launch { repository.eliminarTransaccion(transaccion) }
+    }
+
+    fun agregarMeta(nombre: String, objetivo: Double, icono: String) {
+        if (nombre.isBlank() || objetivo <= 0.0) return
+        viewModelScope.launch {
+            repository.agregarMeta(MetaAhorro(nombre = nombre.trim(), montoObjetivo = objetivo, icono = icono))
+        }
+    }
+
+    fun aportarAMeta(meta: MetaAhorro, monto: Double) {
+        if (monto == 0.0) return
+        viewModelScope.launch { repository.aportarAMeta(meta.id, monto) }
+    }
+
+    fun eliminarMeta(meta: MetaAhorro) {
+        viewModelScope.launch { repository.eliminarMeta(meta) }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app = this[APPLICATION_KEY] as MonexVicApplication
+                FinanzasViewModel(app.repository)
+            }
+        }
+    }
+}

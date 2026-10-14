@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.monexvic.ahorraapp"
+    namespace = "com.monexvic.app"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.monexvic.ahorraapp"
+        applicationId = "com.monexvic.app"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
