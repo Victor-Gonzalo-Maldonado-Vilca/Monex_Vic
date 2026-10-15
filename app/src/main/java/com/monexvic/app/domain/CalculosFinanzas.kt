@@ -1,5 +1,6 @@
 package com.monexvic.app.domain
 
+import com.monexvic.app.data.local.MetaAhorro
 import com.monexvic.app.data.local.TipoTransaccion
 import com.monexvic.app.data.local.Transaccion
 import java.time.Instant
@@ -34,6 +35,10 @@ object CalculosFinanzas {
     /** Balance disponible = todo lo que entró menos todo lo que salió. */
     fun balance(transacciones: List<Transaccion>): Double =
         transacciones.sumOf { if (it.tipo == TipoTransaccion.AHORRO) it.monto else -it.monto }
+
+    /** Dinero libre = balance menos lo apartado en metas de ahorro. */
+    fun disponible(transacciones: List<Transaccion>, metas: List<MetaAhorro>): Double =
+        balance(transacciones) - metas.sumOf { it.montoActual }
 
     fun totalDelMes(
         transacciones: List<Transaccion>,

@@ -1,5 +1,6 @@
 package com.monexvic.app.domain
 
+import com.monexvic.app.data.local.MetaAhorro
 import com.monexvic.app.data.local.TipoTransaccion
 import com.monexvic.app.data.local.Transaccion
 import org.junit.Assert.assertEquals
@@ -60,5 +61,14 @@ class CalculosFinanzasTest {
         assertEquals(0.36f, CalculosFinanzas.porcentajeAhorro(1250.0, 800.0), 0.001f)
         assertEquals(0f, CalculosFinanzas.porcentajeAhorro(100.0, 300.0), 0.001f)
         assertEquals(0f, CalculosFinanzas.porcentajeAhorro(0.0, 50.0), 0.001f)
+    }
+
+    @Test
+    fun disponibleRestaLoApartadoEnMetas() {
+        val metas = listOf(
+            MetaAhorro(nombre = "Viaje", montoObjetivo = 1000.0, montoActual = 300.0),
+        )
+        val resultado = CalculosFinanzas.disponible(datos, metas)
+        assertEquals(550.0, resultado, 0.001)
     }
 }

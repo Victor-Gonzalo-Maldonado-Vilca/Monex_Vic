@@ -14,6 +14,7 @@ enum class FiltroMovimiento(val etiqueta: String) {
 
 data class InicioUiState(
     val balance: Double = 0.0,
+    val enMetas: Double = 0.0,
     val ahorradoMes: Double = 0.0,
     val gastadoMes: Double = 0.0,
     val ultimosMovimientos: List<Transaccion> = emptyList(),

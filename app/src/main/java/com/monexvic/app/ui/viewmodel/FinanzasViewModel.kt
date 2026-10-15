@@ -33,11 +33,12 @@ class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel(
         repository.transacciones.stateIn(viewModelScope, compartir, emptyList())
 
     // ---------- Inicio ----------
-    val inicioState: StateFlow<InicioUiState> = transacciones
-        .map { lista ->
+    val inicioState: StateFlow<InicioUiState> =
+        combine(transacciones, repository.metas) { lista, metas ->
             val mes = CalculosFinanzas.resumenDelMes(lista, YearMonth.now())
             InicioUiState(
-                balance = CalculosFinanzas.balance(lista),
+                balance = CalculosFinanzas.disponible(lista, metas),
+                enMetas = metas.sumOf { it.montoActual },
                 ahorradoMes = mes.ahorro,
                 gastadoMes = mes.gastos,
                 ultimosMovimientos = lista.take(5),

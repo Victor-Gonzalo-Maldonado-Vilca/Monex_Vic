@@ -46,6 +46,7 @@ import com.monexvic.app.ui.components.FilaTransaccion
 import com.monexvic.app.ui.components.NuevoMovimientoSheet
 import com.monexvic.app.ui.components.TituloPantalla
 import com.monexvic.app.ui.components.formatoSoles
+import com.monexvic.app.ui.components.formatoSolesCorto
 import com.monexvic.app.ui.theme.Blanco
 import com.monexvic.app.ui.theme.GrisTexto
 import com.monexvic.app.ui.theme.LavandaMedia
@@ -69,6 +70,7 @@ fun InicioScreen(
         TituloPantalla("Inicio")
         TarjetaBalance(
             balance = state.balance,
+            enMetas = state.enMetas,
             onAgregar = { mostrarNuevo = true },
             modifier = Modifier.padding(horizontal = 20.dp),
         )
@@ -132,9 +134,11 @@ fun InicioScreen(
 }
 
 @Composable
-private fun TarjetaBalance(balance: Double, onAgregar: () -> Unit, modifier: Modifier = Modifier) {
+private fun TarjetaBalance(balance: Double, enMetas: Double, onAgregar: () -> Unit, modifier: Modifier = Modifier) {
     // El padding inferior deja espacio para el botón (+) que sobresale de la tarjeta
-    Box(modifier.fillMaxWidth().padding(bottom = 24.dp)) {
+    Box(modifier
+        .fillMaxWidth()
+        .padding(bottom = 24.dp)) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -142,7 +146,11 @@ private fun TarjetaBalance(balance: Double, onAgregar: () -> Unit, modifier: Mod
             elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         ) {
             Column(Modifier.padding(start = 22.dp, end = 22.dp, top = 24.dp, bottom = 40.dp)) {
-                Text("Mi Balance", style = MaterialTheme.typography.titleMedium, color = Blanco.copy(alpha = 0.9f))
+                Text(
+                    "Disponible",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Blanco.copy(alpha = 0.9f)
+                )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     formatoSoles(balance),
@@ -150,6 +158,13 @@ private fun TarjetaBalance(balance: Double, onAgregar: () -> Unit, modifier: Mod
                     color = Blanco,
                     maxLines = 1,
                 )
+                if (enMetas > 0) {
+                    Text(
+                        text = "${formatoSolesCorto(enMetas)} apartados en metas",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Blanco.copy(alpha = 0.8f),
+                    )
+                }
             }
         }
         FloatingActionButton(
