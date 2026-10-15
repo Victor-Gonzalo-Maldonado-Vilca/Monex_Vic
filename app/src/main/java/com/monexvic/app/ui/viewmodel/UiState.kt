@@ -5,6 +5,7 @@ import com.monexvic.app.data.local.Transaccion
 import com.monexvic.app.domain.CategoriaResumen
 import com.monexvic.app.domain.MesResumen
 import java.time.LocalDate
+import java.time.YearMonth
 
 enum class FiltroMovimiento(val etiqueta: String) {
     TODOS("Todos"),
@@ -43,6 +44,8 @@ data class EstadisticasUiState(
     val ingresosMes: Double = 0.0,
     val gastosMes: Double = 0.0,
     val porcentajeAhorro: Float = 0f,
+    val mes: YearMonth = YearMonth.now(),
 ) {
     val mayorCategoria: CategoriaResumen? get() = gastosPorCategoria.firstOrNull()
+    val puedeAvanzar: Boolean get() = mes < YearMonth.now()
 }

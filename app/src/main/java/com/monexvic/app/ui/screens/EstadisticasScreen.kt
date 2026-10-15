@@ -5,11 +5,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.monexvic.app.ui.components.AnilloPorcentaje
@@ -37,7 +44,6 @@ import com.monexvic.app.ui.theme.Purpura
 import com.monexvic.app.ui.theme.PurpuraOscuro
 import com.monexvic.app.ui.theme.PurpuraTexto
 import com.monexvic.app.ui.viewmodel.FinanzasViewModel
-import java.time.YearMonth
 
 @Composable
 fun EstadisticasScreen(viewModel: FinanzasViewModel) {
@@ -53,11 +59,34 @@ fun EstadisticasScreen(viewModel: FinanzasViewModel) {
     ) {
         EncabezadoApp()
         TituloPantalla("Estadísticas")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = { viewModel.mesAnterior() }) {
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Mes anterior")
+            }
+            Text(
+                text = "${nombreMes(state.mes)} ${state.mes.year}",
+                style = MaterialTheme.typography.titleMedium,
+                color = PurpuraOscuro,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(
+                onClick = { viewModel.mesSiguiente() },
+                enabled = state.puedeAvanzar,
+            ) {
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Mes siguiente")
+            }
+        }
 
         // 1. Gastos del mes por categoría: barras + dona
         TarjetaBlanca {
             Column {
-                Subtitulo("Gastos de ${nombreMes(YearMonth.now())}")
+                Subtitulo("Gastos de ${nombreMes(state.mes)}")
                 Spacer(Modifier.height(12.dp))
                 if (categorias.isEmpty()) {
                     Text("Aún no registras gastos este mes.", color = GrisTexto)

@@ -89,22 +89,34 @@ class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel(
         }.stateIn(viewModelScope, compartir, MetasUiState())
 
     // ---------- Estadísticas ----------
-    val estadisticasState: StateFlow<EstadisticasUiState> = transacciones
-        .map { lista ->
-            val mesActual = YearMonth.now()
-            val resumen = CalculosFinanzas.resumenDelMes(lista, mesActual)
+    private val mesEstadisticas = MutableStateFlow(YearMonth.now())
+    val estadisticasState: StateFlow<EstadisticasUiState> =
+        combine(transacciones, mesEstadisticas) { lista, mes ->
+            val resumen = CalculosFinanzas.resumenDelMes(lista, mes)
             EstadisticasUiState(
-                gastosPorCategoria = CalculosFinanzas.gastosPorCategoria(lista, mesActual),
-                ultimosMeses = CalculosFinanzas.ultimosMeses(lista, mesActual),
+                gastosPorCategoria = CalculosFinanzas.gastosPorCategoria(lista, mes),
+                ultimosMeses = CalculosFinanzas.ultimosMeses(lista, mes),
                 ingresosMes = resumen.ingresos,
                 gastosMes = resumen.gastos,
                 porcentajeAhorro = CalculosFinanzas.porcentajeAhorro(
                     resumen.ingresos,
                     resumen.gastos
                 ),
+                mes = mes,
             )
         }
         .stateIn(viewModelScope, compartir, EstadisticasUiState())
+
+    fun mesAnterior() {
+        mesEstadisticas.value = mesEstadisticas.value.minusMonths(1)
+    }
+
+    fun mesSiguiente() {
+        val siguiente = mesEstadisticas.value.plusMonths(1)
+        if (siguiente <= YearMonth.now()) {
+            mesEstadisticas.value = siguiente
+        }
+    }
 
     // ---------- Acciones ----------
     fun agregarTransaccion(
