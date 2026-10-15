@@ -123,8 +123,8 @@ fun InicioScreen(
     if (mostrarNuevo) {
         NuevoMovimientoSheet(
             onDismiss = { mostrarNuevo = false },
-            onGuardar = { concepto, monto, tipo, categoria ->
-                viewModel.agregarTransaccion(concepto, monto, tipo, categoria)
+            onGuardar = { concepto, monto, tipo, categoria, fecha ->
+                viewModel.agregarTransaccion(concepto, monto, tipo, categoria, fecha)
                 mostrarNuevo = false
             },
         )
