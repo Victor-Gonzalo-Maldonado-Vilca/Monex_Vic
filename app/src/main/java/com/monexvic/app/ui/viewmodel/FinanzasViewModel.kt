@@ -20,7 +20,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.LocalTime
 import java.time.YearMonth
+import java.time.ZoneId
 
 class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel() {
 
@@ -95,7 +98,7 @@ class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel(
         .stateIn(viewModelScope, compartir, EstadisticasUiState())
 
     // ---------- Acciones ----------
-    fun agregarTransaccion(concepto: String, monto: Double, tipo: TipoTransaccion, categoria: String) {
+    fun agregarTransaccion(concepto: String, monto: Double, tipo: TipoTransaccion, categoria: String, fecha: LocalDate = LocalDate.now()) {
         if (concepto.isBlank() || monto <= 0.0) return
         viewModelScope.launch {
             repository.agregarTransaccion(
@@ -104,7 +107,7 @@ class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel(
                     monto = monto,
                     tipo = tipo,
                     categoria = categoria,
-                    fecha = System.currentTimeMillis(),
+                    fecha = fecha.atTime(LocalTime.now()).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
                 )
             )
         }
@@ -112,6 +115,10 @@ class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel(
 
     fun eliminarTransaccion(transaccion: Transaccion) {
         viewModelScope.launch { repository.eliminarTransaccion(transaccion) }
+    }
+
+    fun restaurarTransaccion(transaccion: Transaccion) {
+        viewModelScope.launch { repository.agregarTransaccion(transaccion) }
     }
 
     fun agregarMeta(nombre: String, objetivo: Double, icono: String) {

@@ -2,6 +2,7 @@ package com.monexvic.app.ui.screens
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,10 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -34,7 +39,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -54,105 +61,117 @@ import com.monexvic.app.ui.theme.PurpuraApagado
 import com.monexvic.app.ui.theme.PurpuraOscuro
 import com.monexvic.app.ui.viewmodel.FiltroMovimiento
 import com.monexvic.app.ui.viewmodel.FinanzasViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun MovimientosScreen(viewModel: FinanzasViewModel) {
     val state by viewModel.movimientosState.collectAsStateWithLifecycle()
     var aEliminar by remember { mutableStateOf<Transaccion?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize()) {
+            TituloPantalla(
+                texto = "Movimientos",
+                modifier = Modifier.padding(top = 12.dp),
+                accion = {
+                    Icon(
+                        Icons.Outlined.CalendarMonth,
+                        contentDescription = null,
+                        tint = PurpuraOscuro,
+                        modifier = Modifier.padding(8.dp),
+                    )
+                },
+            )
 
-    Column(Modifier.fillMaxSize()) {
-        TituloPantalla(
-            texto = "Movimientos",
-            modifier = Modifier.padding(top = 12.dp),
-            accion = {
-                Icon(
-                    Icons.Outlined.CalendarMonth,
-                    contentDescription = null,
-                    tint = PurpuraOscuro,
-                    modifier = Modifier.padding(8.dp),
-                )
-            },
-        )
-
-        TextField(
-            value = state.busqueda,
-            onValueChange = viewModel::onBusquedaChange,
-            placeholder = { Text("Buscar") },
-            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-            trailingIcon = {
-                if (state.busqueda.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.onBusquedaChange("") }) {
-                        Icon(Icons.Filled.Close, contentDescription = "Limpiar búsqueda")
+            TextField(
+                value = state.busqueda,
+                onValueChange = viewModel::onBusquedaChange,
+                placeholder = { Text("Buscar") },
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (state.busqueda.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.onBusquedaChange("") }) {
+                            Icon(Icons.Filled.Close, contentDescription = "Limpiar búsqueda")
+                        }
                     }
-                }
-            },
-            singleLine = true,
-            shape = RoundedCornerShape(16.dp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = GrisBusqueda,
-                unfocusedContainerColor = GrisBusqueda,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
-        )
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = GrisBusqueda,
+                    unfocusedContainerColor = GrisBusqueda,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+            )
 
-        Row(
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            FiltroMovimiento.entries.forEach { filtro ->
-                val seleccionado = state.filtro == filtro
-                FilterChip(
-                    selected = seleccionado,
-                    onClick = { viewModel.onFiltroChange(filtro) },
-                    label = { Text(filtro.etiqueta) },
-                    shape = CircleShape,
-                    colors = coloresChip(),
-                    border = FilterChipDefaults.filterChipBorder(
-                        enabled = true,
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FiltroMovimiento.entries.forEach { filtro ->
+                    val seleccionado = state.filtro == filtro
+                    FilterChip(
                         selected = seleccionado,
-                        borderColor = if (filtro == FiltroMovimiento.AHORROS) Menta else PurpuraApagado,
-                        selectedBorderColor = Purpura,
-                        borderWidth = 1.5.dp,
-                    ),
-                )
-            }
-        }
-
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-            color = Blanco,
-        ) {
-            if (state.grupos.isEmpty()) {
-                Text(
-                    "No hay movimientos que coincidan.",
-                    color = GrisTexto,
-                    modifier = Modifier.padding(24.dp),
-                )
-            }
-            LazyColumn(contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp)) {
-                state.grupos.forEach { grupo ->
-                    item(key = "fecha-${grupo.fecha}") {
-                        Text(
-                            etiquetaFecha(grupo.fecha),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = GrisTexto,
-                            modifier = Modifier.padding(start = 4.dp, top = 12.dp, bottom = 2.dp),
-                        )
-                    }
-                    items(grupo.movimientos, key = { it.id }) { transaccion ->
-                        FilaTransaccion(transaccion, onClick = { aEliminar = transaccion })
-                    }
+                        onClick = { viewModel.onFiltroChange(filtro) },
+                        label = { Text(filtro.etiqueta) },
+                        shape = CircleShape,
+                        colors = coloresChip(),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = seleccionado,
+                            borderColor = if (filtro == FiltroMovimiento.AHORROS) Menta else PurpuraApagado,
+                            selectedBorderColor = Purpura,
+                            borderWidth = 1.5.dp,
+                        ),
+                    )
                 }
-                item { Spacer(Modifier.height(8.dp)) }
+            }
+
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                color = Blanco,
+            ) {
+                if (state.grupos.isEmpty()) {
+                    Text(
+                        "No hay movimientos que coincidan.",
+                        color = GrisTexto,
+                        modifier = Modifier.padding(24.dp),
+                    )
+                }
+                LazyColumn(
+                    contentPadding = PaddingValues(
+                        start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp
+                    )
+                ) {
+                    state.grupos.forEach { grupo ->
+                        item(key = "fecha-${grupo.fecha}") {
+                            Text(
+                                etiquetaFecha(grupo.fecha),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = GrisTexto,
+                                modifier = Modifier.padding(start = 4.dp, top = 12.dp, bottom = 2.dp),
+                            )
+                        }
+                        items(grupo.movimientos, key = { it.id }) { transaccion ->
+                            FilaTransaccion(transaccion, onClick = { aEliminar = transaccion })
+                        }
+                    }
+                    item { Spacer(Modifier.height(8.dp)) }
+                }
             }
         }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
 
     aEliminar?.let { transaccion ->
@@ -160,10 +179,28 @@ fun MovimientosScreen(viewModel: FinanzasViewModel) {
             onDismissRequest = { aEliminar = null },
             containerColor = Blanco,
             title = { Text("¿Eliminar movimiento?") },
-            text = { Text("${transaccion.concepto} · ${formatoConSigno(transaccion.monto, transaccion.tipo)}") },
+            text = {
+                Text(
+                    "${transaccion.concepto} · ${
+                        formatoConSigno(
+                            transaccion.monto, transaccion.tipo
+                        )
+                    }"
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.eliminarTransaccion(transaccion)
+                    scope.launch {
+                        val resultado = snackbarHostState.showSnackbar(
+                            message = "Movimiento eliminado",
+                            actionLabel = "Deshacer",
+                            duration = SnackbarDuration.Short,
+                        )
+                        if (resultado == SnackbarResult.ActionPerformed) {
+                            viewModel.restaurarTransaccion(transaccion)
+                        }
+                    }
                     aEliminar = null
                 }) { Text("Eliminar") }
             },
