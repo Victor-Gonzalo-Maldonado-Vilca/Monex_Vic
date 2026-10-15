@@ -1,5 +1,22 @@
 package com.monexvic.app.ui.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.graphics.Color
+import com.monexvic.app.ui.theme.LavandaMedia
+import com.monexvic.app.ui.theme.Menta
+import com.monexvic.app.ui.theme.PurpuraApagado
+import com.monexvic.app.ui.theme.RojoError
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -13,7 +30,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChipDefaults
@@ -41,7 +59,7 @@ import com.monexvic.app.ui.theme.Purpura
 import com.monexvic.app.ui.theme.PurpuraOscuro
 import com.monexvic.app.ui.theme.PurpuraTexto
 
-/** Barra superior con el logo "MonexVic" y la campana de notificaciones. */
+/** Barra superior con el logo "MonexVic". */
 @Composable
 fun EncabezadoApp(modifier: Modifier = Modifier) {
     Row(
@@ -57,12 +75,6 @@ fun EncabezadoApp(modifier: Modifier = Modifier) {
             },
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-        )
-        Spacer(Modifier.weight(1f))
-        Icon(
-            imageVector = Icons.Outlined.Notifications,
-            contentDescription = "Notificaciones",
-            tint = PurpuraOscuro,
         )
     }
 }
@@ -81,7 +93,7 @@ fun TituloPantalla(
     ) {
         Text(
             text = texto,
-            style = MaterialTheme.typography.headlineLarge,
+            style = MaterialTheme.typography.headlineMedium,
             color = PurpuraOscuro,
             modifier = Modifier.weight(1f),
         )
@@ -164,3 +176,118 @@ fun coloresChip(): SelectableChipColors = FilterChipDefaults.filterChipColors(
     selectedLabelColor = Blanco,
     selectedLeadingIconColor = Blanco,
 )
+
+/** Altura común de los botones principales: ni muy grandes ni muy pequeños. */
+val AltoBoton = 48.dp
+private val FormaBoton = RoundedCornerShape(14.dp)
+
+/** Botón principal de la app (Guardar, Aportar...). */
+@Composable
+fun BotonPrimario(
+    texto: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    color: Color = Purpura,
+) {
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        shape = FormaBoton,
+        colors = ButtonDefaults.buttonColors(containerColor = color, contentColor = Blanco),
+        contentPadding = PaddingValues(horizontal = 20.dp),
+        modifier = modifier.height(AltoBoton),
+    ) {
+        Text(texto, style = MaterialTheme.typography.titleMedium)
+    }
+}
+
+/** Botón secundario con borde, del mismo tamaño que [BotonPrimario]. */
+@Composable
+fun BotonSecundario(
+    texto: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    OutlinedButton(
+        onClick = onClick,
+        enabled = enabled,
+        shape = FormaBoton,
+        border = BorderStroke(1.dp, if (enabled) PurpuraApagado else LavandaMedia),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = Purpura),
+        contentPadding = PaddingValues(horizontal = 20.dp),
+        modifier = modifier.height(AltoBoton),
+    ) {
+        Text(texto, style = MaterialTheme.typography.titleMedium)
+    }
+}
+
+/** Botón de texto rojo con icono de papelera, para eliminar. */
+@Composable
+fun BotonEliminar(texto: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    TextButton(
+        onClick = onClick,
+        colors = ButtonDefaults.textButtonColors(contentColor = RojoError),
+        modifier = modifier,
+    ) {
+        Icon(Icons.Outlined.DeleteOutline, contentDescription = null, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(texto)
+    }
+}
+
+/** Lugar donde aparecen los avisos con "Deshacer", con el estilo de MonexVic. */
+@Composable
+fun SnackbarMonexVic(hostState: SnackbarHostState, modifier: Modifier = Modifier) {
+    SnackbarHost(hostState, modifier.padding(horizontal = 16.dp, vertical = 12.dp)) { datos ->
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = PurpuraOscuro,
+            shadowElevation = 6.dp,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Row(
+                modifier = Modifier.padding(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(Blanco.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Outlined.DeleteOutline, contentDescription = null, tint = Blanco, modifier = Modifier.size(18.dp))
+                }
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    datos.visuals.message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Blanco,
+                    modifier = Modifier.weight(1f),
+                )
+                datos.visuals.actionLabel?.let { accion ->
+                    TextButton(
+                        onClick = { datos.performAction() },
+                        colors = ButtonDefaults.textButtonColors(contentColor = Menta),
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(accion, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Muestra "[mensaje] · Deshacer" y llama a [onDeshacer] si el usuario lo toca.
+ * Cierra antes el aviso anterior para que no se queden en cola al eliminar varios seguidos.
+ */
+suspend fun SnackbarHostState.mostrarDeshacer(mensaje: String, onDeshacer: () -> Unit) {
+    currentSnackbarData?.dismiss()
+    val resultado = showSnackbar(mensaje, actionLabel = "Deshacer", duration = SnackbarDuration.Long)
+    if (resultado == SnackbarResult.ActionPerformed) onDeshacer()
+}

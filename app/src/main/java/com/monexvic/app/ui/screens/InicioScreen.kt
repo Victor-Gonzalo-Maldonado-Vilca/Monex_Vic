@@ -31,6 +31,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.monexvic.app.data.local.Transaccion
 import com.monexvic.app.ui.components.EncabezadoApp
 import com.monexvic.app.ui.components.FilaTransaccion
 import com.monexvic.app.ui.components.NuevoMovimientoSheet
@@ -64,6 +66,7 @@ fun InicioScreen(
 ) {
     val state by viewModel.inicioState.collectAsStateWithLifecycle()
     var mostrarNuevo by rememberSaveable { mutableStateOf(false) }
+    var aEditar by remember { mutableStateOf<Transaccion?>(null) }
 
     Column(Modifier.fillMaxSize()) {
         EncabezadoApp()
@@ -100,7 +103,7 @@ fun InicioScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        "Últimos Movimientos",
+                        "Últimos movimientos",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = PurpuraOscuro,
@@ -116,7 +119,9 @@ fun InicioScreen(
                     )
                 }
                 LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
-                    items(state.ultimosMovimientos, key = { it.id }) { FilaTransaccion(it) }
+                    items(state.ultimosMovimientos, key = { it.id }) { transaccion ->
+                        FilaTransaccion(transaccion, onClick = { aEditar = transaccion })
+                    }
                 }
             }
         }
@@ -128,6 +133,17 @@ fun InicioScreen(
             onGuardar = { concepto, monto, tipo, categoria, fecha ->
                 viewModel.agregarTransaccion(concepto, monto, tipo, categoria, fecha)
                 mostrarNuevo = false
+            },
+        )
+    }
+
+    aEditar?.let { transaccion ->
+        NuevoMovimientoSheet(
+            inicial = transaccion,
+            onDismiss = { aEditar = null },
+            onGuardar = { concepto, monto, tipo, categoria, fecha ->
+                viewModel.actualizarTransaccion(transaccion, concepto, monto, tipo, categoria, fecha)
+                aEditar = null
             },
         )
     }
@@ -171,13 +187,12 @@ private fun TarjetaBalance(balance: Double, enMetas: Double, onAgregar: () -> Un
             onClick = onAgregar,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .offset(x = (-20).dp, y = 24.dp)
-                .size(56.dp),
+                .offset(x = (-20).dp, y = 24.dp),
             shape = RoundedCornerShape(16.dp),
             containerColor = Menta,
             contentColor = Blanco,
         ) {
-            Icon(Icons.Filled.Add, contentDescription = "Nuevo movimiento", modifier = Modifier.size(30.dp))
+            Icon(Icons.Filled.Add, contentDescription = "Nuevo movimiento")
         }
     }
 }

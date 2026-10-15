@@ -1,11 +1,13 @@
 package com.monexvic.app.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -76,13 +78,13 @@ fun NuevoMovimientoSheet(
     onGuardar: (concepto: String, monto: Double, tipo: TipoTransaccion, categoria: String, fecha: LocalDate) -> Unit,
     inicial: Transaccion? = null,
     onEliminar: (() -> Unit)? = null,
-    ) {
+) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var tipo by rememberSaveable { mutableStateOf(inicial?.tipo ?: TipoTransaccion.GASTO) }
     var concepto by rememberSaveable { mutableStateOf(inicial?.concepto ?: "") }
-    var montoTexto by rememberSaveable { mutableStateOf(inicial?.monto?.toString() ?: "") }
-    var fecha by rememberSaveable() { mutableStateOf( inicial?.let { CalculosFinanzas.fechaDe(it.fecha) } ?: LocalDate.now() ) }
-    var mostrarCalendario by rememberSaveable() { mutableStateOf( false ) }
+    var montoTexto by rememberSaveable { mutableStateOf(inicial?.monto?.let(::montoEditable) ?: "") }
+    var fecha by rememberSaveable { mutableStateOf(inicial?.let { CalculosFinanzas.fechaDe(it.fecha) } ?: LocalDate.now()) }
+    var mostrarCalendario by rememberSaveable { mutableStateOf(false) }
     val categorias = Categorias.de(tipo)
     var categoria by rememberSaveable(tipo) {
         mutableStateOf(
@@ -92,19 +94,18 @@ fun NuevoMovimientoSheet(
     val monto = leerMonto(montoTexto)
     val valido = concepto.isNotBlank() && monto != null && monto > 0.0
 
-
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, containerColor = Blanco) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp),
+                .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
                 if (inicial == null) "Nuevo movimiento" else "Editar movimiento",
                 style = MaterialTheme.typography.titleLarge,
-                color = PurpuraOscuro
+                color = PurpuraOscuro,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TipoTransaccion.entries.forEach { opcion ->
@@ -135,21 +136,30 @@ fun NuevoMovimientoSheet(
                 modifier = Modifier.fillMaxWidth(),
             )
 
+            // Selector de fecha con el mismo ancho y forma que los campos de texto
             OutlinedButton(
-                onClick = {
-                    mostrarCalendario = true
-                }
+                onClick = { mostrarCalendario = true },
+                shape = MaterialTheme.shapes.extraSmall,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
             ) {
                 Icon(
                     imageVector = Icons.Filled.CalendarMonth,
-                    contentDescription = "Seleccionar Fecha"
+                    contentDescription = null,
+                    tint = Purpura,
+                    modifier = Modifier.size(20.dp),
                 )
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(12.dp))
                 Text(
-                    text = etiquetaFecha(fecha),
-                    style = MaterialTheme.typography.bodyMedium
-
+                    text = "Fecha: ${etiquetaFecha(fecha)}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = PurpuraOscuro,
+                    modifier = Modifier.weight(1f),
                 )
+                Text("Cambiar", style = MaterialTheme.typography.bodyMedium, color = Purpura)
             }
 
             Text("Categoría", style = MaterialTheme.typography.titleMedium, color = PurpuraOscuro)
@@ -192,21 +202,20 @@ fun NuevoMovimientoSheet(
                 }
             }
 
-            Button(
+            BotonPrimario(
+                texto = if (inicial == null) "Guardar" else "Guardar cambios",
                 onClick = { if (monto != null) onGuardar(concepto, monto, tipo, categoria, fecha) },
                 enabled = valido,
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Purpura),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(52.dp),
-            ) {
-                Text("Guardar")
-            }
+                    .padding(top = 4.dp),
+            )
             if (onEliminar != null) {
-                TextButton(onClick = onEliminar, modifier = Modifier.fillMaxWidth()) {
-                    Text("Eliminar movimiento", color = MaterialTheme.colorScheme.error)
-                }
+                BotonEliminar(
+                    "Eliminar movimiento",
+                    onClick = onEliminar,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                )
             }
         }
     }
@@ -274,13 +283,24 @@ fun NuevaMetaDialog(
 @Composable
 fun AportarMetaDialog(
     meta: MetaAhorro,
+    disponible: Double,
     onDismiss: () -> Unit,
     onAportar: (monto: Double) -> Unit,
     onEliminar: () -> Unit,
 ) {
     var montoTexto by rememberSaveable { mutableStateOf("") }
     val monto = leerMonto(montoTexto)
-    val valido = monto != null && monto > 0.0
+    val hayMonto = monto != null && monto > 0.0
+    // No se puede apartar más de lo disponible ni retirar más de lo que hay en la meta
+    val puedeAportar = hayMonto && monto!! <= disponible + 0.001
+    val puedeRetirar = hayMonto && monto!! <= meta.montoActual + 0.001
+    val aviso = when {
+        !hayMonto -> null
+        !puedeAportar && !puedeRetirar -> "Supera tu disponible y lo que hay en la meta"
+        !puedeAportar -> "Solo tienes ${formatoSoles(disponible)} disponible para aportar"
+        !puedeRetirar -> "La meta solo tiene ${formatoSoles(meta.montoActual)} para retirar"
+        else -> null
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -290,33 +310,38 @@ fun AportarMetaDialog(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
                     "Llevas ${formatoSolesCorto(meta.montoActual)} de ${formatoSolesCorto(meta.montoObjetivo)}",
-                    color = GrisTexto,
+                    color = PurpuraOscuro,
                 )
+                Text("Disponible: ${formatoSoles(disponible)}", color = GrisTexto)
                 OutlinedTextField(
                     value = montoTexto,
                     onValueChange = { montoTexto = soloMonto(it) },
                     label = { Text("Monto") },
                     prefix = { Text("S/ ") },
                     singleLine = true,
+                    isError = aviso != null,
+                    supportingText = aviso?.let { { Text(it) } },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
                 )
-                TextButton(onClick = onEliminar, contentPadding = ButtonDefaults.TextButtonContentPadding) {
-                    Text("Eliminar meta", color = PurpuraTexto)
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    BotonSecundario(
+                        "Retirar",
+                        onClick = { if (monto != null) onAportar(-monto) },
+                        enabled = puedeRetirar,
+                        modifier = Modifier.weight(1f),
+                    )
+                    BotonPrimario(
+                        "Aportar",
+                        onClick = { if (monto != null) onAportar(monto) },
+                        enabled = puedeAportar,
+                        color = Menta,
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
         },
-        confirmButton = {
-            Row {
-                TextButton(onClick = { if (monto != null) onAportar(-monto) }, enabled = valido) {
-                    Text("Retirar")
-                }
-                Button(
-                    onClick = { if (monto != null) onAportar(monto) },
-                    enabled = valido,
-                    colors = ButtonDefaults.buttonColors(containerColor = Menta),
-                ) { Text("Aportar") }
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } },
+        dismissButton = { BotonEliminar("Eliminar meta", onClick = onEliminar) },
     )
 }

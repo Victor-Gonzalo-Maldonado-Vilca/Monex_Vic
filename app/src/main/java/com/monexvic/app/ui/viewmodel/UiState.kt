@@ -34,6 +34,7 @@ data class MovimientosUiState(
 data class MetasUiState(
     val metas: List<MetaAhorro> = emptyList(),
     val totalAhorradoEnMetas: Double = 0.0,
+    val disponible: Double = 0.0,
 )
 
 data class EstadisticasUiState(

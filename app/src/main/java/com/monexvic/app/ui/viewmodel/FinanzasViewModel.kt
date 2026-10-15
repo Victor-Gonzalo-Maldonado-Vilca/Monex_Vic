@@ -79,9 +79,14 @@ class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel(
     }
 
     // ---------- Metas ----------
-    val metasState: StateFlow<MetasUiState> = repository.metas
-        .map { metas -> MetasUiState(metas, metas.sumOf { it.montoActual }) }
-        .stateIn(viewModelScope, compartir, MetasUiState())
+    val metasState: StateFlow<MetasUiState> =
+        combine(transacciones, repository.metas) { lista, metas ->
+            MetasUiState(
+                metas = metas,
+                totalAhorradoEnMetas = metas.sumOf { it.montoActual },
+                disponible = CalculosFinanzas.disponible(lista, metas),
+            )
+        }.stateIn(viewModelScope, compartir, MetasUiState())
 
     // ---------- Estadísticas ----------
     val estadisticasState: StateFlow<EstadisticasUiState> = transacciones
@@ -178,6 +183,11 @@ class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel(
     fun aportarAMeta(meta: MetaAhorro, monto: Double) {
         if (monto == 0.0) return
         viewModelScope.launch { repository.aportarAMeta(meta.id, monto) }
+    }
+
+    /** Vuelve a insertar una meta eliminada con su mismo id y monto (para "Deshacer"). */
+    fun restaurarMeta(meta: MetaAhorro) {
+        viewModelScope.launch { repository.agregarMeta(meta) }
     }
 
     fun eliminarMeta(meta: MetaAhorro) {

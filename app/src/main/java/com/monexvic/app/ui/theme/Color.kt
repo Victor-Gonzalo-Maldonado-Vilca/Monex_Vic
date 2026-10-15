@@ -18,6 +18,7 @@ val MentaOscuro = Color(0xFF3F9E8D)      // Montos de ingreso (mejor contraste s
 val RosaClaro = Color(0xFFFBE0EE)        // Fondo de iconos de gasto
 val GrisBusqueda = Color(0xFFEFEFF3)     // Barra de búsqueda
 val GrisTexto = Color(0xFF6B6577)        // Textos secundarios
+val RojoError = Color(0xFFD14B5A)        // Acciones destructivas (eliminar)
 val Blanco = Color(0xFFFFFFFF)
 
 // Colores para gráficos por categoría

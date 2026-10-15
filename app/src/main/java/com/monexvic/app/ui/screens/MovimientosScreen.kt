@@ -19,17 +19,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,9 +43,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.monexvic.app.data.local.Transaccion
+import com.monexvic.app.ui.components.EncabezadoApp
 import com.monexvic.app.ui.components.FilaTransaccion
 import com.monexvic.app.ui.components.NuevoMovimientoSheet
+import com.monexvic.app.ui.components.SnackbarMonexVic
 import com.monexvic.app.ui.components.TituloPantalla
+import com.monexvic.app.ui.components.mostrarDeshacer
 import com.monexvic.app.ui.components.coloresChip
 import com.monexvic.app.ui.components.etiquetaFecha
 import com.monexvic.app.ui.components.formatoConSigno
@@ -58,6 +57,7 @@ import com.monexvic.app.ui.theme.GrisBusqueda
 import com.monexvic.app.ui.theme.GrisTexto
 import com.monexvic.app.ui.theme.Menta
 import com.monexvic.app.ui.theme.Purpura
+import com.monexvic.app.ui.theme.RojoError
 import com.monexvic.app.ui.theme.PurpuraApagado
 import com.monexvic.app.ui.theme.PurpuraOscuro
 import com.monexvic.app.ui.viewmodel.FiltroMovimiento
@@ -73,18 +73,8 @@ fun MovimientosScreen(viewModel: FinanzasViewModel) {
     val scope = rememberCoroutineScope()
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
-            TituloPantalla(
-                texto = "Movimientos",
-                modifier = Modifier.padding(top = 12.dp),
-                accion = {
-                    Icon(
-                        Icons.Outlined.CalendarMonth,
-                        contentDescription = null,
-                        tint = PurpuraOscuro,
-                        modifier = Modifier.padding(8.dp),
-                    )
-                },
-            )
+            EncabezadoApp()
+            TituloPantalla("Movimientos")
 
             TextField(
                 value = state.busqueda,
@@ -170,7 +160,7 @@ fun MovimientosScreen(viewModel: FinanzasViewModel) {
                 }
             }
         }
-        SnackbarHost(
+        SnackbarMonexVic(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
@@ -214,17 +204,12 @@ fun MovimientosScreen(viewModel: FinanzasViewModel) {
                 TextButton(onClick = {
                     viewModel.eliminarTransaccion(transaccion)
                     scope.launch {
-                        val resultado = snackbarHostState.showSnackbar(
-                            message = "Movimiento eliminado",
-                            actionLabel = "Deshacer",
-                            duration = SnackbarDuration.Short,
-                        )
-                        if (resultado == SnackbarResult.ActionPerformed) {
+                        snackbarHostState.mostrarDeshacer("Movimiento eliminado") {
                             viewModel.restaurarTransaccion(transaccion)
                         }
                     }
                     aEliminar = null
-                }) { Text("Eliminar") }
+                }) { Text("Eliminar", color = RojoError) }
             },
             dismissButton = { TextButton(onClick = { aEliminar = null }) { Text("Cancelar") } },
         )
