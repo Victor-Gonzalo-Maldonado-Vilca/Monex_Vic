@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.monexvic.app.data.local.Transaccion
 import com.monexvic.app.ui.components.FilaTransaccion
+import com.monexvic.app.ui.components.NuevoMovimientoSheet
 import com.monexvic.app.ui.components.TituloPantalla
 import com.monexvic.app.ui.components.coloresChip
 import com.monexvic.app.ui.components.etiquetaFecha
@@ -67,6 +68,7 @@ import kotlinx.coroutines.launch
 fun MovimientosScreen(viewModel: FinanzasViewModel) {
     val state by viewModel.movimientosState.collectAsStateWithLifecycle()
     var aEliminar by remember { mutableStateOf<Transaccion?>(null) }
+    var aEditar by remember { mutableStateOf<Transaccion?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     Box(Modifier.fillMaxSize()) {
@@ -161,7 +163,7 @@ fun MovimientosScreen(viewModel: FinanzasViewModel) {
                             )
                         }
                         items(grupo.movimientos, key = { it.id }) { transaccion ->
-                            FilaTransaccion(transaccion, onClick = { aEliminar = transaccion })
+                            FilaTransaccion(transaccion, onClick = { aEditar = transaccion })
                         }
                     }
                     item { Spacer(Modifier.height(8.dp)) }
@@ -173,7 +175,27 @@ fun MovimientosScreen(viewModel: FinanzasViewModel) {
             modifier = Modifier.align(Alignment.BottomCenter),
         )
     }
-
+    aEditar?.let { transaccion ->
+        NuevoMovimientoSheet(
+            inicial = transaccion,
+            onDismiss = { aEditar = null },
+            onGuardar = { nuevoConcepto, nuevoMonto, nuevoTipo, nuevaCategoria, nuevaFecha ->
+                viewModel.actualizarTransaccion(
+                    transaccion,
+                    concepto = nuevoConcepto,
+                    monto = nuevoMonto,
+                    tipo = nuevoTipo,
+                    categoria = nuevaCategoria,
+                    fecha = nuevaFecha
+                    )
+                aEditar = null
+            },
+            onEliminar = {
+                aEditar = null
+                aEliminar = transaccion
+            },
+        )
+    }
     aEliminar?.let { transaccion ->
         AlertDialog(
             onDismissRequest = { aEliminar = null },

@@ -17,6 +17,8 @@ class FinanzasRepository(
     suspend fun agregarTransaccion(transaccion: Transaccion) = transaccionDao.insertar(transaccion)
     suspend fun eliminarTransaccion(transaccion: Transaccion) = transaccionDao.eliminar(transaccion)
 
+    suspend fun actualizarTransaccion(transaccion: Transaccion) = transaccionDao.actualizar(transaccion)
+
     suspend fun agregarMeta(meta: MetaAhorro) = metaAhorroDao.insertar(meta)
     suspend fun aportarAMeta(id: Long, monto: Double) = metaAhorroDao.aportar(id, monto)
     suspend fun eliminarMeta(meta: MetaAhorro) = metaAhorroDao.eliminar(meta)

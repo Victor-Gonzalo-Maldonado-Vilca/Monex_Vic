@@ -61,6 +61,8 @@ import java.time.ZoneOffset
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.SelectableDates
+import com.monexvic.app.data.local.Transaccion
+import com.monexvic.app.domain.CalculosFinanzas
 
 /** Convierte el texto de un campo de monto ("12,50" o "12.50") en número. */
 private fun leerMonto(texto: String): Double? = texto.replace(',', '.').toDoubleOrNull()
@@ -72,17 +74,24 @@ private fun soloMonto(texto: String): String = texto.filter { it.isDigit() || it
 fun NuevoMovimientoSheet(
     onDismiss: () -> Unit,
     onGuardar: (concepto: String, monto: Double, tipo: TipoTransaccion, categoria: String, fecha: LocalDate) -> Unit,
-) {
+    inicial: Transaccion? = null,
+    onEliminar: (() -> Unit)? = null,
+    ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var tipo by rememberSaveable { mutableStateOf(TipoTransaccion.GASTO) }
-    var concepto by rememberSaveable { mutableStateOf("") }
-    var montoTexto by rememberSaveable { mutableStateOf("") }
-    var fecha by rememberSaveable() { mutableStateOf(LocalDate.now() ) }
+    var tipo by rememberSaveable { mutableStateOf(inicial?.tipo ?: TipoTransaccion.GASTO) }
+    var concepto by rememberSaveable { mutableStateOf(inicial?.concepto ?: "") }
+    var montoTexto by rememberSaveable { mutableStateOf(inicial?.monto?.toString() ?: "") }
+    var fecha by rememberSaveable() { mutableStateOf( inicial?.let { CalculosFinanzas.fechaDe(it.fecha) } ?: LocalDate.now() ) }
     var mostrarCalendario by rememberSaveable() { mutableStateOf( false ) }
     val categorias = Categorias.de(tipo)
-    var categoria by rememberSaveable(tipo) { mutableStateOf(categorias.first()) }
+    var categoria by rememberSaveable(tipo) {
+        mutableStateOf(
+            if (inicial != null && tipo == inicial.tipo) inicial.categoria else categorias.first()
+        )
+    }
     val monto = leerMonto(montoTexto)
     val valido = concepto.isNotBlank() && monto != null && monto > 0.0
+
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState, containerColor = Blanco) {
         Column(
@@ -92,8 +101,11 @@ fun NuevoMovimientoSheet(
                 .padding(bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text("Nuevo movimiento", style = MaterialTheme.typography.titleLarge, color = PurpuraOscuro)
-
+            Text(
+                if (inicial == null) "Nuevo movimiento" else "Editar movimiento",
+                style = MaterialTheme.typography.titleLarge,
+                color = PurpuraOscuro
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TipoTransaccion.entries.forEach { opcion ->
                     FilterChip(
@@ -190,6 +202,11 @@ fun NuevoMovimientoSheet(
                     .height(52.dp),
             ) {
                 Text("Guardar")
+            }
+            if (onEliminar != null) {
+                TextButton(onClick = onEliminar, modifier = Modifier.fillMaxWidth()) {
+                    Text("Eliminar movimiento", color = MaterialTheme.colorScheme.error)
+                }
             }
         }
     }

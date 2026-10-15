@@ -92,13 +92,22 @@ class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel(
                 ultimosMeses = CalculosFinanzas.ultimosMeses(lista, mesActual),
                 ingresosMes = resumen.ingresos,
                 gastosMes = resumen.gastos,
-                porcentajeAhorro = CalculosFinanzas.porcentajeAhorro(resumen.ingresos, resumen.gastos),
+                porcentajeAhorro = CalculosFinanzas.porcentajeAhorro(
+                    resumen.ingresos,
+                    resumen.gastos
+                ),
             )
         }
         .stateIn(viewModelScope, compartir, EstadisticasUiState())
 
     // ---------- Acciones ----------
-    fun agregarTransaccion(concepto: String, monto: Double, tipo: TipoTransaccion, categoria: String, fecha: LocalDate = LocalDate.now()) {
+    fun agregarTransaccion(
+        concepto: String,
+        monto: Double,
+        tipo: TipoTransaccion,
+        categoria: String,
+        fecha: LocalDate = LocalDate.now()
+    ) {
         if (concepto.isBlank() || monto <= 0.0) return
         viewModelScope.launch {
             repository.agregarTransaccion(
@@ -107,7 +116,8 @@ class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel(
                     monto = monto,
                     tipo = tipo,
                     categoria = categoria,
-                    fecha = fecha.atTime(LocalTime.now()).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+                    fecha = fecha.atTime(LocalTime.now()).atZone(ZoneId.systemDefault()).toInstant()
+                        .toEpochMilli(),
                 )
             )
         }
@@ -117,6 +127,36 @@ class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel(
         viewModelScope.launch { repository.eliminarTransaccion(transaccion) }
     }
 
+    fun actualizarTransaccion(
+        original: Transaccion,
+        concepto: String,
+        monto: Double,
+        tipo: TipoTransaccion,
+        categoria: String,
+        fecha: LocalDate,
+    ) {
+        if (concepto.isBlank() || monto <= 0.0) return
+        viewModelScope.launch {
+            repository.actualizarTransaccion(
+                original.copy(
+                    concepto = concepto.trim(),
+                    monto = monto,
+                    tipo = tipo,
+                    categoria = categoria,
+                    fecha = if (fecha == CalculosFinanzas.fechaDe(
+                            original.fecha
+                        )
+                    ) {
+                        original.fecha
+                    } else {
+                        fecha.atTime(LocalTime.now()).atZone(ZoneId.systemDefault()).toInstant()
+                            .toEpochMilli()
+                    }
+                )
+            )
+        }
+    }
+
     fun restaurarTransaccion(transaccion: Transaccion) {
         viewModelScope.launch { repository.agregarTransaccion(transaccion) }
     }
@@ -124,7 +164,13 @@ class FinanzasViewModel(private val repository: FinanzasRepository) : ViewModel(
     fun agregarMeta(nombre: String, objetivo: Double, icono: String) {
         if (nombre.isBlank() || objetivo <= 0.0) return
         viewModelScope.launch {
-            repository.agregarMeta(MetaAhorro(nombre = nombre.trim(), montoObjetivo = objetivo, icono = icono))
+            repository.agregarMeta(
+                MetaAhorro(
+                    nombre = nombre.trim(),
+                    montoObjetivo = objetivo,
+                    icono = icono
+                )
+            )
         }
     }
 
